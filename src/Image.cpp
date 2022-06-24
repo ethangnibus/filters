@@ -118,7 +118,6 @@ Image& Image::liar() {
             double curr_b = 0.0;
 
             if (i != 0) {
-                num_nei
             }
         }
     }
