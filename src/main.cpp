@@ -4,20 +4,29 @@
 #include <filesystem>
 
 int main(int argc, char** argv) {
-    clock_t start, end;
-    start = clock();
+    clock_t start = clock();
 
-    std::string path = "/Users/ebs/art/filters/emma";
-    for (const auto & entry : std::filesystem::directory_iterator(path))
-        std::cout << entry.path() << std::endl;
-    
+    std::string directory = "emma";
+    std::string path = "img/" + directory;
+    std::string converted_path = path + "_converted";
+    std::filesystem::create_directories(converted_path);
 
-    Image liar = Image("face.png");
-    liar.liar();
-    liar.write("face_liar.png");
+    for (const auto & entry : std::filesystem::directory_iterator(path)) {
+        if (entry.path().extension() != ".png") continue;
+        
+        // make filenames
+        std::string source_filename = path + "/" + entry.path().filename().c_str();
+        char* source_filename_char_ptr = const_cast<char*>(source_filename.c_str());
+        std::string destination_filename = converted_path + "/" + entry.path().filename().c_str();
+        char* destination_filename_char_ptr = const_cast<char*>(destination_filename.c_str());
 
-    end = clock();
-    printf ("Process finished in %0.8f seconds.\n",
-            ((float) end - start) / CLOCKS_PER_SEC);
+        // call liar
+        Image liar = Image(source_filename_char_ptr);
+        liar.liar();
+        liar.write(destination_filename_char_ptr);
+    }
+
+
+    std::cout << "Process finished in " << ((float) clock() - start) / CLOCKS_PER_SEC << " seconds." << std::endl;
     return 0;
 }
