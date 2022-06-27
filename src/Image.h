@@ -6,7 +6,8 @@ enum ImageType {
 };
 
 struct Image {
-    uint8_t* data = NULL;
+    u_int8_t* source = NULL;
+    u_int8_t* destination = NULL;
     size_t size = 0;
     int w;
     int h;

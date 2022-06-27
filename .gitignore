@@ -1,0 +1,11 @@
+# Ignore Mac system files
+.DS_store
+
+# Ignore vscode settings
+.vscode
+
+# Ignore objects
+*.o
+
+# Images
+img/
