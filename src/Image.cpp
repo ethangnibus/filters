@@ -3,11 +3,14 @@
 
 #include <algorithm>
 #include <iterator>
+#include <stdlib.h>
 
 #include "Image.h"
 #include "stb_image.h"
 #include "stb_image_write.h"
-#include "CGL/vector3D.h"
+
+
+
 
 Image::Image(const char* filename) {
     if (read(filename)) {
@@ -19,27 +22,37 @@ Image::Image(const char* filename) {
 
 }
 
+
+
 Image::Image(int w, int h, int channels) : w(w), h(h), channels(channels) {
     size = w * h * channels;
     source = new u_int8_t[size];
     destination = new u_int8_t[size];
 }
 
+
+
 Image::Image(const Image& img) : Image(img.w, img.h, img.channels) {
     memcpy(source, img.source, size);
     memcpy(destination, img.source, size);
 }
+
+
 
 Image::~Image() {
     stbi_image_free(source);
     stbi_image_free(destination);
 }
 
+
+
 bool Image::read(const char* filename) {
     source = stbi_load(filename, &w, &h, &channels, 0);
     destination = stbi_load(filename, &w, &h, &channels, 0);
     return source != NULL && destination != NULL;
 }
+
+
 
 bool Image::write(const char* filename) {
     ImageType type = getFileType(filename);
@@ -62,6 +75,7 @@ bool Image::write(const char* filename) {
     return success != 0;
 }
 
+
 ImageType Image::getFileType(const char* filename) {
     const char* ext = strrchr(filename, '.');
 
@@ -83,10 +97,30 @@ ImageType Image::getFileType(const char* filename) {
 }
 
 
+void Image::copyColor(CGL::Vector3D& color, size_t index) {
+    color.x = source[index + 0];
+    color.y = source[index + 1];
+    color.z = source[index + 2];
+}
+
+void Image::setColor(CGL::Vector3D& color, size_t index) {
+    destination[index + 0] = u_int8_t(color.x);
+    destination[index + 1] = u_int8_t(color.y);
+    destination[index + 2] = u_int8_t(color.z);
+}
+
+void Image::sampleColor(CGL::Vector3D& color) {
+    size_t index = size_t(rand() % (w * h)) * channels;
+    color.x = source[index + 0];
+    color.y = source[index + 1];
+    color.z = source[index + 2];
+}
+
+
 Image& Image::greyscale_avg() {
     // (r + g + b) / 3
     if (channels < 3) {
-        printf("Image %p has less than 3 channels, it is assumed to already be greyscale", __cpp_capture_star_this);
+        printf("Image %ld has less than 3 channels, it is assumed to already be greyscale", __cpp_capture_star_this);
     } else {
         for (size_t i = 0; i < size; i += channels) {
             int grey = (source[i] + source[i + 1] + source[i + 2]) / 3;
@@ -96,9 +130,11 @@ Image& Image::greyscale_avg() {
     return *this;
 }
 
+
+
 Image& Image::greyscale_lum() {
     if (channels < 3) {
-        printf("Image %p has less than 3 channels, it is assumed to already be greyscale", __cpp_capture_star_this);
+        printf("Image %ld has less than 3 channels, it is assumed to already be greyscale", __cpp_capture_star_this);
     } else {
         for (size_t i = 0; i < size; i += channels) {
             int grey = 0.2126*source[i] + 0.7152*source[i + 1] + 0.0722*source[i + 2];
@@ -108,9 +144,11 @@ Image& Image::greyscale_lum() {
     return *this;
 }
 
+
+
 Image& Image::liar() {
     if (channels < 3) {
-        printf("Image %p has less than 3 channels, it is assumed to already be greyscale", __cpp_capture_star_this);
+        printf("Image %ld has less than 3 channels, it is assumed to already be greyscale", __cpp_capture_star_this);
         return *this;
     }
 
@@ -120,16 +158,12 @@ Image& Image::liar() {
             CGL::Vector3D out_color = CGL::Vector3D(0.0, 0.0, 0.0);
             int num_neighbors = 0;
             CGL::Vector3D curr_color;
-            curr_color.x = source[index + 0];
-            curr_color.y = source[index + 1];
-            curr_color.z = source[index + 2];
+            copyColor(curr_color, index);
             
             if (i != 0) {
                 num_neighbors += 1;
                 CGL::Vector3D color_above;
-                color_above.x = source[index + 0 - channels * w];
-                color_above.y = source[index + 1 - channels * w];
-                color_above.z = source[index + 2 - channels * w];
+                copyColor(color_above, index - channels * w);
 
                 out_color.x += abs(color_above.x - curr_color.x);
                 out_color.y += abs(color_above.y - curr_color.y);
@@ -139,9 +173,7 @@ Image& Image::liar() {
             if (j != 0) {
                 num_neighbors += 1;
                 CGL::Vector3D color_left;
-                color_left.x = source[index + 0 - channels];
-                color_left.y = source[index + 1 - channels];
-                color_left.z = source[index + 2 - channels];
+                copyColor(color_left, index - channels);
 
                 out_color.x += abs(color_left.x - curr_color.x);
                 out_color.y += abs(color_left.y - curr_color.y);
@@ -151,9 +183,7 @@ Image& Image::liar() {
             if (i != 0 && j != 0) {
                 num_neighbors += 1;
                 CGL::Vector3D color_top_left;
-                color_top_left.x = source[index + 0 - channels * (w + 1)];
-                color_top_left.y = source[index + 1 - channels * (w + 1)];
-                color_top_left.z = source[index + 2 - channels * (w + 1)];
+                copyColor(color_top_left, index - channels * (w + 1));
 
                 out_color.x += abs(color_top_left.x - curr_color.x);
                 out_color.y += abs(color_top_left.y - curr_color.y);
@@ -163,9 +193,7 @@ Image& Image::liar() {
             if (i != h - 1) {
                 num_neighbors += 1;
                 CGL::Vector3D color_below;
-                color_below.x = source[index + 0 + channels * w];
-                color_below.y = source[index + 1 + channels * w];
-                color_below.z = source[index + 2 + channels * w];
+                copyColor(color_below, index + channels * w);
 
                 out_color.x += abs(color_below.x - curr_color.x);
                 out_color.y += abs(color_below.y - curr_color.y);
@@ -175,9 +203,7 @@ Image& Image::liar() {
             if (j != w - 1) {
                 num_neighbors += 1;
                 CGL::Vector3D color_right;
-                color_right.x = source[index + 0 + channels];
-                color_right.y = source[index + 1 + channels];
-                color_right.z = source[index + 2 + channels];
+                copyColor(color_right, index + channels);
 
                 out_color.x += abs(color_right.x - curr_color.x);
                 out_color.y += abs(color_right.y - curr_color.y);
@@ -187,9 +213,7 @@ Image& Image::liar() {
             if (i != h - 1 && j != w - 1) {
                 num_neighbors += 1;
                 CGL::Vector3D color_bottom_right;
-                color_bottom_right.x = source[index + 0 + channels * (w + 1)];
-                color_bottom_right.y = source[index + 1 + channels * (w + 1)];
-                color_bottom_right.z = source[index + 2 + channels * (w + 1)];
+                copyColor(color_bottom_right, index + channels * (w + 1));
 
                 out_color.x += abs(color_bottom_right.x - curr_color.x);
                 out_color.y += abs(color_bottom_right.y - curr_color.y);
@@ -199,12 +223,47 @@ Image& Image::liar() {
             out_color = (out_color / num_neighbors) * 10;
             out_color.clamp();
 
-            destination[index + 0] = u_int8_t(out_color.x);
-            destination[index + 1] = u_int8_t(out_color.y);
-            destination[index + 2] = u_int8_t(out_color.z);
+            setColor(out_color, index);
         }
     }
-    
+
+    return *this;
+}
+
+Image& Image::echo(Image& last, Image& palette) {
+    if (channels < 3) {
+        printf("Image %ld has less than 3 channels, it is assumed to already be greyscale", __cpp_capture_star_this);
+        return *this;
+    }
+
+    for (size_t i = 0; i < h; i += 1) {
+        for (size_t j = 0; j < w; j += 1) {
+            size_t index = channels * (i * w + j);
+
+            CGL::Vector3D out_color = CGL::Vector3D(0.0, 0.0, 0.0);
+            CGL::Vector3D curr_color;
+            copyColor(curr_color, index);
+            
+            if (curr_color.addElements() < 300) {
+                last.copyColor(curr_color, index);
+                if (curr_color.addElements() >= 10) {
+                    palette.copyColor(curr_color, index);
+                }
+            }
+            if (curr_color.addElements() < 20) {
+                curr_color.x = 0;
+                curr_color.y = 0;
+                curr_color.z = 0;
+            }
+            int sub = rand() % 50;
+            curr_color.x -= sub;
+            curr_color.y -= sub;
+            curr_color.z -= sub;
+
+            out_color = curr_color;
+            setColor(out_color, index);
+        }
+    }
 
     return *this;
 }

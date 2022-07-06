@@ -125,6 +125,13 @@ class Vector3D {
   }
 
   /**
+   * Adds x, y, z.
+   */
+  inline int addElements( void ) {
+    return x + y + z;
+  }
+
+  /**
    * Clamps colors to 255.
    */
   inline void clamp( void ) {
