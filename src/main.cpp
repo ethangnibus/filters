@@ -7,7 +7,7 @@
 int main(int argc, char** argv) {
     clock_t start = clock();
     
-    std::string directory = "spike720";
+    std::string directory = "craiyon";
     std::string path = "img/" + directory;
     std::string converted_path = path + "_converted";
     std::filesystem::create_directories(converted_path);
@@ -36,11 +36,11 @@ int main(int argc, char** argv) {
         std::string source_filename = path + "/" + std::to_string(i) + ".png";
         char* source_filename_char_ptr = const_cast<char*>(source_filename.c_str());
 
-        // std::string last_filename = converted_path + "/" + std::to_string(i-1) + ".png";
-        // char* last_filename_char_ptr = const_cast<char*>(source_filename.c_str());
+        std::string last_filename = converted_path + "/" + std::to_string(i-1) + ".png";
+        char* last_filename_char_ptr = const_cast<char*>(source_filename.c_str());
 
-        // std::string palette_filename = "img/s720/" + std::to_string(i) + ".png";
-        // char* palette_filename_char_ptr = const_cast<char*>(palette_filename.c_str());
+        std::string palette_filename = "img/spike720/" + std::to_string(i) + ".png";
+        char* palette_filename_char_ptr = const_cast<char*>(palette_filename.c_str());
 
         std::string destination_filename = converted_path + "/" + std::to_string(i) + ".png";
         char* destination_filename_char_ptr = const_cast<char*>(destination_filename.c_str());
@@ -48,10 +48,10 @@ int main(int argc, char** argv) {
 
         // call liar
         Image curr_img = Image(source_filename_char_ptr);
-        // Image last_img = Image(last_filename_char_ptr);
-        // Image palette = Image(palette_filename_char_ptr);
-        // curr_img.echo(last_img, palette);
-        curr_img.liar();
+        Image last_img = Image(last_filename_char_ptr);
+        Image palette = Image(palette_filename_char_ptr);
+        curr_img.echo(last_img, palette);
+        // curr_img.liar();
         curr_img.write(destination_filename_char_ptr);
     }
 
