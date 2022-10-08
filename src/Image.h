@@ -32,6 +32,8 @@ struct Image {
 
     Image& greyscale_avg();
     Image& greyscale_lum();
+    Image& inverse();
     Image& liar();
-    Image& echo(Image& other, Image& palette);
+    Image& echo(Image& last, Image& palette);
+    Image& colorTo(Image& last);
 };

@@ -7,7 +7,7 @@
 int main(int argc, char** argv) {
     clock_t start = clock();
     
-    std::string directory = "craiyon";
+    std::string directory = "curiosity_liar";
     std::string path = "img/" + directory;
     std::string converted_path = path + "_converted";
     std::filesystem::create_directories(converted_path);
@@ -16,7 +16,7 @@ int main(int argc, char** argv) {
     size_t fileCount = 0;
 
     for (const auto & entry : std::filesystem::directory_iterator(path)) {
-        if (entry.path().extension() != ".png") continue;
+        if (entry.path().extension() != ".jpg") continue;
         fileCount += 1;
     }
 
@@ -31,27 +31,28 @@ int main(int argc, char** argv) {
 
 
 
-    for (size_t i = 0; i < fileCount; i += 1) {
+    for (size_t i = fileCount - 1; i >= 0; i -= 1) {
         // make filenames
-        std::string source_filename = path + "/" + std::to_string(i) + ".png";
+        std::string source_filename = path + "/" + std::to_string(i) + ".jpg";
         char* source_filename_char_ptr = const_cast<char*>(source_filename.c_str());
 
-        std::string last_filename = converted_path + "/" + std::to_string(i-1) + ".png";
+        std::string last_filename = converted_path + "/" + std::to_string(i+1) + ".jpg";
         char* last_filename_char_ptr = const_cast<char*>(source_filename.c_str());
 
-        std::string palette_filename = "img/spike720/" + std::to_string(i) + ".png";
-        char* palette_filename_char_ptr = const_cast<char*>(palette_filename.c_str());
+        // std::string palette_filename = "img/spike/" + std::to_string(i) + ".jpg";
+        // char* palette_filename_char_ptr = const_cast<char*>(palette_filename.c_str());
 
-        std::string destination_filename = converted_path + "/" + std::to_string(i) + ".png";
+        std::string destination_filename = converted_path + "/" + std::to_string(i) + ".jpg";
         char* destination_filename_char_ptr = const_cast<char*>(destination_filename.c_str());
 
 
         // call liar
         Image curr_img = Image(source_filename_char_ptr);
         Image last_img = Image(last_filename_char_ptr);
-        Image palette = Image(palette_filename_char_ptr);
-        curr_img.echo(last_img, palette);
+        // Image palette = Image(palette_filename_char_ptr);
+        // curr_img.colorTo(last_img);
         // curr_img.liar();
+        curr_img.inverse();
         curr_img.write(destination_filename_char_ptr);
     }
 

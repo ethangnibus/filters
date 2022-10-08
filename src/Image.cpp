@@ -144,6 +144,31 @@ Image& Image::greyscale_lum() {
     return *this;
 }
 
+Image& Image::inverse() {
+    // (r + g + b) / 3
+    if (channels < 3) {
+        printf("Image %ld has less than 3 channels, it is assumed to already be greyscale", __cpp_capture_star_this);
+        return *this;
+    }
+    
+    for (size_t i = 0; i < h; i += 1) {
+        for (size_t j = 0; j < w; j += 1) {
+            size_t index = channels * (i * w + j);
+            CGL::Vector3D out_color = CGL::Vector3D(255.0, 255.0, 255.0);
+            
+            CGL::Vector3D curr_color;
+            copyColor(curr_color, index);
+
+            out_color = out_color - curr_color;
+            
+            
+
+            setColor(out_color, index);
+        }
+    }
+    return *this;
+}
+
 
 
 Image& Image::liar() {
@@ -262,6 +287,32 @@ Image& Image::echo(Image& last, Image& palette) {
 
             out_color = curr_color;
             setColor(out_color, index);
+        }
+    }
+
+    return *this;
+}
+
+Image& Image::colorTo(Image& last) {
+    if (channels < 3) {
+        printf("Image %ld has less than 3 channels, it is assumed to already be greyscale", __cpp_capture_star_this);
+        return *this;
+    }
+
+    for (size_t i = 0; i < h; i += 1) {
+        for (size_t j = 0; j < w; j += 1) {
+            size_t index = channels * (i * w + j);
+
+            CGL::Vector3D front_color = CGL::Vector3D(0.0, 0.0, 0.0);
+            CGL::Vector3D back_color = CGL::Vector3D(0.0, 0.0, 0.0);
+            copyColor(back_color, index);
+            last.copyColor(front_color, index);
+
+            if (front_color.x > front_color.y && front_color.x > front_color.z) {
+                back_color = back_color + front_color / 2.0;
+            }
+
+            setColor(back_color, index);
         }
     }
 
